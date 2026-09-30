@@ -89,18 +89,44 @@ pipeline {
                 echo 'Verifying deployed Patent Disclosure application'
 
                 powershell '''
-                Start-Sleep -Seconds 15
+                $ready = $false
 
-                $r = Invoke-WebRequest `
-                    "http://localhost:8081/patent-disclosure-workflow/index.html" `
-                    -UseBasicParsing `
-                    -TimeoutSec 10
+                for ($i = 1; $i -le 10; $i++) {
+                    try {
+                        $r = Invoke-WebRequest `
+                            "http://localhost:8081/patent-disclosure-workflow/" `
+                            -UseBasicParsing `
+                            -TimeoutSec 10 `
+                            -ErrorAction Stop
 
-                if ($r.StatusCode -ne 200) {
+                        Write-Host "Tomcat returned HTTP $($r.StatusCode)."
+
+                        $ready = $true
+                        break
+                    }
+                    catch {
+                        Write-Host "Waiting for Tomcat deployment..."
+                        Start-Sleep -Seconds 5
+                    }
+                }
+
+                if (-not $ready) {
+                    Write-Host "Tomcat deployment verification failed."
+
+                    $logPath = "C:\\Users\\madhu\\apache-tomcat-11.0.24\\logs"
+
+                    if (Test-Path $logPath) {
+                        Write-Host "Recent Tomcat logs:"
+                        Get-ChildItem $logPath |
+                            Sort-Object LastWriteTime -Descending |
+                            Select-Object -First 1 |
+                            Get-Content -Tail 50
+                    }
+
                     exit 1
                 }
 
-                Write-Host "Deployed application returned HTTP 200."
+                Write-Host "Tomcat deployment verification completed successfully."
                 '''
             }
         }
