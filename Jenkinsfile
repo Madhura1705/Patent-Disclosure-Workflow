@@ -24,19 +24,44 @@ pipeline {
             steps {
                 echo 'Starting application for Selenium tests'
 
-                bat '''
-                start "PatentDisclosureApp" /B cmd /c "mvn spring-boot:run > jenkins-app.log 2>&1"
+                bat 'start "PatentDisclosureApp" /B cmd /c "mvn spring-boot:run > jenkins-app.log 2>&1"'
 
-                echo Waiting for application on port 8090...
-                timeout /t 25 /nobreak
+                echo 'Waiting for application on port 8090'
 
-                powershell -NoProfile -Command ^
-                "$r = Invoke-WebRequest 'http://localhost:8090' -UseBasicParsing; ^
-                if ($r.StatusCode -ne 200) { exit 1 }"
+                powershell '''
+                $ready = $false
 
-                echo Running Selenium tests...
-                call mvn test
+                for ($i = 1; $i -le 15; $i++) {
+                    try {
+                        $r = Invoke-WebRequest "http://localhost:8090" -UseBasicParsing -TimeoutSec 3
+
+                        if ($r.StatusCode -eq 200) {
+                            $ready = $true
+                            break
+                        }
+                    }
+                    catch {
+                    }
+
+                    Start-Sleep -Seconds 3
+                }
+
+                if (-not $ready) {
+                    Write-Host "Application did not become ready."
+
+                    if (Test-Path "jenkins-app.log") {
+                        Get-Content "jenkins-app.log" -Tail 50
+                    }
+
+                    exit 1
+                }
+
+                Write-Host "Application is ready on port 8090."
                 '''
+
+                echo 'Running Selenium tests'
+
+                bat 'mvn test'
             }
         }
 
@@ -53,12 +78,9 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo 'Deploying WAR to Apache Tomcat 11 on port 8081'
+                echo 'Deploying WAR to Apache Tomcat 11'
 
-                bat '''
-                copy /Y target\\patent-disclosure-workflow-1.0.0.war ^
-                "C:\\Users\\madhu\\apache-tomcat-11.0.24\\webapps\\patent-disclosure-workflow.war"
-                '''
+                bat 'copy /Y target\\patent-disclosure-workflow-1.0.0.war "C:\\Users\\madhu\\apache-tomcat-11.0.24\\webapps\\patent-disclosure-workflow.war"'
             }
         }
 
@@ -66,12 +88,19 @@ pipeline {
             steps {
                 echo 'Verifying deployed Patent Disclosure application'
 
-                bat '''
-                timeout /t 10 /nobreak
+                powershell '''
+                Start-Sleep -Seconds 15
 
-                powershell -NoProfile -Command ^
-                "$r = Invoke-WebRequest 'http://localhost:8081/patent-disclosure-workflow/index.html' -UseBasicParsing; ^
-                if ($r.StatusCode -ne 200) { exit 1 }"
+                $r = Invoke-WebRequest `
+                    "http://localhost:8081/patent-disclosure-workflow/index.html" `
+                    -UseBasicParsing `
+                    -TimeoutSec 10
+
+                if ($r.StatusCode -ne 200) {
+                    exit 1
+                }
+
+                Write-Host "Deployed application returned HTTP 200."
                 '''
             }
         }
@@ -83,15 +112,6 @@ pipeline {
 
             junit allowEmptyResults: true,
                   testResults: 'target/surefire-reports/*.xml'
-
-            echo 'Stopping temporary Spring Boot test process'
-
-            bat '''
-            powershell -NoProfile -Command ^
-            "Get-CimInstance Win32_Process | ^
-            Where-Object { $_.CommandLine -like '*spring-boot:run*' } | ^
-            ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
-            '''
         }
 
         success {
