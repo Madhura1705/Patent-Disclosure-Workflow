@@ -16,6 +16,7 @@
     <groupId>com.patent</groupId>
     <artifactId>patent-disclosure-workflow</artifactId>
     <version>1.0.0</version>
+    <packaging>war</packaging>
 
     <name>Patent Disclosure Workflow</name>
     <description>Selenium Testing for a Patent Disclosure Workflow</description>
@@ -30,6 +31,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Tomcat for WAR deployment -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Spring Data JPA -->
