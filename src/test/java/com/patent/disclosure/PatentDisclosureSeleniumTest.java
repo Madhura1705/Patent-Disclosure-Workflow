@@ -245,7 +245,7 @@ public class PatentDisclosureSeleniumTest {
                         ExpectedConditions
                                 .visibilityOfElementLocated(
                                         By.xpath(
-                                                "//h2[contains(text(),'Track Patent Disclosure')]"
+                                                "//h2[contains(text(),'Patent Disclosure Status Tracking')]"
                                         )
                                 )
                 );
