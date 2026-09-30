@@ -22,9 +22,21 @@
 
         stage('Test') {
             steps {
-                echo 'Executing Selenium tests'
+                echo 'Starting application for Selenium tests'
 
-                bat 'mvn test'
+                bat '''
+                start "PatentDisclosureApp" /B cmd /c "mvn spring-boot:run > jenkins-app.log 2>&1"
+
+                echo Waiting for application on port 8090...
+                timeout /t 25 /nobreak
+
+                powershell -NoProfile -Command ^
+                "$r = Invoke-WebRequest 'http://localhost:8090' -UseBasicParsing; ^
+                if ($r.StatusCode -ne 200) { exit 1 }"
+
+                echo Running Selenium tests...
+                call mvn test
+                '''
             }
         }
 
@@ -41,11 +53,11 @@
 
         stage('Deploy') {
             steps {
-                echo 'Deploying WAR to Apache Tomcat 11'
+                echo 'Deploying WAR to Apache Tomcat 11 on port 8081'
 
                 bat '''
                 copy /Y target\\patent-disclosure-workflow-1.0.0.war ^
-                "%USERPROFILE%\\apache-tomcat-11.0.24\\webapps\\patent-disclosure-workflow.war"
+                "C:\\Users\\madhu\\apache-tomcat-11.0.24\\webapps\\patent-disclosure-workflow.war"
                 '''
             }
         }
@@ -55,6 +67,8 @@
                 echo 'Verifying deployed Patent Disclosure application'
 
                 bat '''
+                timeout /t 10 /nobreak
+
                 powershell -NoProfile -Command ^
                 "$r = Invoke-WebRequest 'http://localhost:8081/patent-disclosure-workflow/index.html' -UseBasicParsing; ^
                 if ($r.StatusCode -ne 200) { exit 1 }"
@@ -65,8 +79,19 @@
 
     post {
         always {
+            echo 'Publishing JUnit test results'
+
             junit allowEmptyResults: true,
                   testResults: 'target/surefire-reports/*.xml'
+
+            echo 'Stopping temporary Spring Boot test process'
+
+            bat '''
+            powershell -NoProfile -Command ^
+            "Get-CimInstance Win32_Process | ^
+            Where-Object { $_.CommandLine -like '*spring-boot:run*' } | ^
+            ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
+            '''
         }
 
         success {
