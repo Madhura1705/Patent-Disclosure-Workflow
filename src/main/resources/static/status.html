@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Status Tracking - Patent Disclosure Workflow</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #1f2937;
+        }
+
+        header {
+            background: #17365d;
+            color: white;
+            padding: 25px 45px;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+        }
+
+        header p {
+            margin: 0;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 45px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        h2 {
+            color: #17365d;
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        button {
+            background: #17365d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        button:hover {
+            background: #0f2948;
+        }
+
+        .message {
+            display: none;
+            padding: 14px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .result {
+            display: none;
+            margin-top: 25px;
+            padding: 25px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-row {
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            font-weight: bold;
+            display: inline-block;
+            width: 180px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .submitted {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .rejection {
+            color: #991b1b;
+        }
+
+        footer {
+            text-align: center;
+            color: #777;
+            padding: 25px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <h1>Patent Disclosure Workflow</h1>
+
+    <p>
+        Disclosure Status Tracking
+    </p>
+
+</header>
+
+
+<div class="container">
+
+    <div class="card">
+
+        <h2>Track Patent Disclosure</h2>
+
+        <p>
+            Enter your Disclosure ID to check the current status
+            of your patent disclosure.
+        </p>
+
+
+        <div id="message"
+             class="message">
+        </div>
+
+
+        <form id="statusForm">
+
+            <div class="form-group">
+
+                <label for="disclosureIdInput">
+                    Disclosure ID
+                </label>
+
+                <input
+                    type="text"
+                    id="disclosureIdInput"
+                    name="disclosureId"
+                    placeholder="Example: PD-20260929-45788404"
+                    required>
+
+            </div>
+
+
+            <button
+                type="submit"
+                id="checkStatusButton">
+
+                Check Status
+
+            </button>
+
+        </form>
+
+
+        <div id="result"
+             class="result">
+
+            <div class="result-row">
+
+                <span class="label">
+                    Disclosure ID:
+                </span>
+
+                <span id="resultDisclosureId"></span>
+
+            </div>
+
+
+            <div class="result-row">
+
+                <span class="label">
+                    Applicant:
+                </span>
+
+                <span id="resultApplicant"></span>
+
+            </div>
+
+
+            <div class="result-row">
+
+                <span class="label">
+                    Email:
+                </span>
+
+                <span id="resultEmail"></span>
+
+            </div>
+
+
+            <div class="result-row">
+
+                <span class="label">
+                    Department:
+                </span>
+
+                <span id="resultDepartment"></span>
+
+            </div>
+
+
+            <div class="result-row">
+
+                <span class="label">
+                    Patent Title:
+                </span>
+
+                <span id="resultTitle"></span>
+
+            </div>
+
+
+            <div class="result-row">
+
+                <span class="label">
+                    Submitted At:
+                </span>
+
+                <span id="resultSubmittedAt"></span>
+
+            </div>
+
+
+            <div class="result-row">
+
+                <span class="label">
+                    Current Status:
+                </span>
+
+                <span
+                    id="resultStatus"
+                    class="status">
+
+                </span>
+
+            </div>
+
+
+            <div
+                id="rejectionRow"
+                class="result-row"
+                style="display: none;">
+
+                <span class="label rejection">
+                    Rejection Reason:
+                </span>
+
+                <span
+                    id="resultRejectionReason"
+                    class="rejection">
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<footer>
+
+    Patent Disclosure Workflow |
+    DevOps & Selenium Project
+
+    <br>
+
+    Madhura Suroshe | 24102C2002
+
+</footer>
+
+
+<script>
+
+
+    const form =
+        document.getElementById("statusForm");
+
+
+    const input =
+        document.getElementById(
+            "disclosureIdInput"
+        );
+
+
+    const button =
+        document.getElementById(
+            "checkStatusButton"
+        );
+
+
+    const message =
+        document.getElementById("message");
+
+
+    const result =
+        document.getElementById("result");
+
+
+    form.addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            message.className =
+                "message";
+
+            message.textContent =
+                "";
+
+            result.style.display =
+                "none";
+
+
+            const id =
+                input.value.trim();
+
+
+            if (id === "") {
+
+                message.className =
+                    "message error";
+
+                message.textContent =
+                    "Please enter a Disclosure ID.";
+
+                return;
+
+            }
+
+
+            button.disabled = true;
+
+            button.textContent =
+                "Checking...";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `/api/disclosures/${encodeURIComponent(id)}`
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    message.className =
+                        "message error";
+
+                    message.textContent =
+                        data.message ||
+                        "Disclosure not found.";
+
+                    return;
+
+                }
+
+
+                // Fill result
+
+                document.getElementById(
+                    "resultDisclosureId"
+                ).textContent =
+                    data.disclosureId;
+
+
+                document.getElementById(
+                    "resultApplicant"
+                ).textContent =
+                    data.applicantName;
+
+
+                document.getElementById(
+                    "resultEmail"
+                ).textContent =
+                    data.email;
+
+
+                document.getElementById(
+                    "resultDepartment"
+                ).textContent =
+                    data.department;
+
+
+                document.getElementById(
+                    "resultTitle"
+                ).textContent =
+                    data.patentTitle;
+
+
+                document.getElementById(
+                    "resultSubmittedAt"
+                ).textContent =
+                    new Date(
+                        data.submittedAt
+                    ).toLocaleString();
+
+
+                const statusElement =
+                    document.getElementById(
+                        "resultStatus"
+                    );
+
+
+                statusElement.textContent =
+                    data.status;
+
+
+                statusElement.className =
+                    "status " +
+                    data.status.toLowerCase();
+
+
+                // Rejection reason
+
+                const rejectionRow =
+                    document.getElementById(
+                        "rejectionRow"
+                    );
+
+
+                if (
+                    data.status === "REJECTED"
+                    && data.rejectionReason
+                ) {
+
+                    document.getElementById(
+                        "resultRejectionReason"
+                    ).textContent =
+                        data.rejectionReason;
+
+                    rejectionRow.style.display =
+                        "block";
+
+                } else {
+
+                    rejectionRow.style.display =
+                        "none";
+
+                }
+
+
+                result.style.display =
+                    "block";
+
+
+            } catch (error) {
+
+                message.className =
+                    "message error";
+
+                message.textContent =
+                    "Unable to connect to the server.";
+
+            } finally {
+
+                button.disabled = false;
+
+                button.textContent =
+                    "Check Status";
+
+            }
+
+        }
+    );
+
+
+</script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Reviewer Dashboard - Patent Disclosure Workflow</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #1f2937;
+        }
+
+        header {
+            background: #17365d;
+            color: white;
+            padding: 25px 45px;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+        }
+
+        header p {
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h2 {
+            color: #17365d;
+            margin-top: 0;
+        }
+
+        .message {
+            display: none;
+            padding: 14px;
+            border-radius: 7px;
+            margin-bottom: 20px;
+        }
+
+        .message.success {
+            display: block;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .message.error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            min-width: 900px;
+        }
+
+        th {
+            background: #17365d;
+            color: white;
+            padding: 13px;
+            text-align: left;
+        }
+
+        td {
+            padding: 13px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .submitted {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        button {
+            border: none;
+            padding: 8px 13px;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            margin: 2px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            background: #94a3b8 !important;
+            cursor: not-allowed;
+        }
+
+        .approve {
+            background: #15803d;
+        }
+
+        .reject {
+            background: #dc2626;
+        }
+
+        .refresh {
+            background: #2563eb;
+            margin-bottom: 15px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 35px;
+            color: #777;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 35px;
+            color: #555;
+        }
+
+        .details {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .details h3 {
+            color: #17365d;
+        }
+
+        .detail-row {
+            margin-bottom: 10px;
+        }
+
+        .detail-label {
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #777;
+            font-size: 14px;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <h1>Reviewer Dashboard</h1>
+
+    <p>
+        Patent Disclosure Review and Approval
+    </p>
+
+</header>
+
+
+<div class="container">
+
+    <div class="card">
+
+        <h2>Submitted Disclosures</h2>
+
+
+        <div id="message"
+             class="message">
+        </div>
+
+
+        <button
+            id="refreshButton"
+            class="refresh"
+            onclick="loadDisclosures()">
+
+            Refresh Disclosures
+
+        </button>
+
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Disclosure ID</th>
+
+                        <th>Applicant</th>
+
+                        <th>Department</th>
+
+                        <th>Patent Title</th>
+
+                        <th>Status</th>
+
+                        <th>Action</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="disclosureTable">
+
+                    <tr>
+
+                        <td colspan="6"
+                            class="loading">
+
+                            Loading disclosures...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <div id="details"
+             class="details">
+
+            <h3>Disclosure Details</h3>
+
+            <div id="detailsContent"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<footer>
+
+    Patent Disclosure Workflow |
+    DevOps & Selenium Project
+
+    <br>
+
+    Madhura Suroshe | 24102C2002
+
+</footer>
+
+
+<script>
+
+
+    // =========================================================
+    // ELEMENTS
+    // =========================================================
+
+    const table =
+        document.getElementById("disclosureTable");
+
+    const message =
+        document.getElementById("message");
+
+    const refreshButton =
+        document.getElementById("refreshButton");
+
+    const details =
+        document.getElementById("details");
+
+    const detailsContent =
+        document.getElementById("detailsContent");
+
+
+    // =========================================================
+    // SHOW MESSAGE
+    // =========================================================
+
+    function showMessage(text, type) {
+
+        message.className =
+            "message " + type;
+
+        message.textContent =
+            text;
+
+    }
+
+
+    // =========================================================
+    // LOAD ALL DISCLOSURES
+    // =========================================================
+
+    async function loadDisclosures() {
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="6" class="loading">
+                    Loading disclosures...
+                </td>
+            </tr>
+        `;
+
+
+        try {
+
+            const response =
+                await fetch("/api/disclosures");
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Failed to load disclosures"
+                );
+
+            }
+
+
+            const disclosures =
+                await response.json();
+
+
+            table.innerHTML = "";
+
+
+            if (disclosures.length === 0) {
+
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty">
+                            No patent disclosures found.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+
+            disclosures.forEach(
+                disclosure => {
+
+                    const row =
+                        document.createElement("tr");
+
+
+                    const statusClass =
+                        disclosure.status
+                            .toLowerCase();
+
+
+                    let actions = "";
+
+
+                    if (
+                        disclosure.status ===
+                        "SUBMITTED"
+                    ) {
+
+                        actions = `
+
+                            <button
+                                class="approve"
+                                id="approve-${disclosure.disclosureId}"
+                                onclick="approveDisclosure('${disclosure.disclosureId}')">
+
+                                Approve
+
+                            </button>
+
+
+                            <button
+                                class="reject"
+                                id="reject-${disclosure.disclosureId}"
+                                onclick="rejectDisclosure('${disclosure.disclosureId}')">
+
+                                Reject
+
+                            </button>
+
+                        `;
+
+                    } else {
+
+                        actions =
+                            "Reviewed";
+
+                    }
+
+
+                    row.innerHTML = `
+
+                        <td>
+
+                            <strong>
+                                ${disclosure.disclosureId}
+                            </strong>
+
+                            <br>
+
+                            <button
+                                onclick="viewDetails('${disclosure.disclosureId}')">
+
+                                View Details
+
+                            </button>
+
+                        </td>
+
+
+                        <td>
+                            ${disclosure.applicantName}
+                        </td>
+
+
+                        <td>
+                            ${disclosure.department}
+                        </td>
+
+
+                        <td>
+                            ${disclosure.patentTitle}
+                        </td>
+
+
+                        <td>
+
+                            <span
+                                class="status ${statusClass}">
+
+                                ${disclosure.status}
+
+                            </span>
+
+                        </td>
+
+
+                        <td>
+
+                            ${actions}
+
+                        </td>
+
+                    `;
+
+
+                    table.appendChild(row);
+
+                }
+            );
+
+
+        } catch (error) {
+
+            table.innerHTML = `
+                <tr>
+                    <td colspan="6" class="empty">
+                        Unable to load disclosures.
+                    </td>
+                </tr>
+            `;
+
+            showMessage(
+                "Unable to connect to the server.",
+                "error"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // VIEW DETAILS
+    // =========================================================
+
+    async function viewDetails(id) {
+
+        try {
+
+            const response =
+                await fetch(
+                    `/api/disclosures/${id}`
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error();
+
+            }
+
+
+            const disclosure =
+                await response.json();
+
+
+            detailsContent.innerHTML = `
+
+                <div class="detail-row">
+
+                    <span class="detail-label">
+                        Disclosure ID:
+                    </span>
+
+                    ${disclosure.disclosureId}
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span class="detail-label">
+                        Applicant:
+                    </span>
+
+                    ${disclosure.applicantName}
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span class="detail-label">
+                        Email:
+                    </span>
+
+                    ${disclosure.email}
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span class="detail-label">
+                        Department:
+                    </span>
+
+                    ${disclosure.department}
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span class="detail-label">
+                        Patent Title:
+                    </span>
+
+                    ${disclosure.patentTitle}
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span class="detail-label">
+                        Description:
+                    </span>
+
+                    ${disclosure.patentDescription}
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span class="detail-label">
+                        Document:
+                    </span>
+
+                    ${disclosure.documentName}
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span class="detail-label">
+                        Status:
+                    </span>
+
+                    ${disclosure.status}
+
+                </div>
+
+
+                ${
+                    disclosure.rejectionReason
+                    ?
+                    `
+                    <div class="detail-row">
+
+                        <span class="detail-label">
+                            Rejection Reason:
+                        </span>
+
+                        ${disclosure.rejectionReason}
+
+                    </div>
+                    `
+                    :
+                    ""
+                }
+
+            `;
+
+
+            details.style.display =
+                "block";
+
+
+            details.scrollIntoView({
+                behavior: "smooth"
+            });
+
+
+        } catch (error) {
+
+            showMessage(
+                "Unable to load disclosure details.",
+                "error"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // APPROVE
+    // =========================================================
+
+    async function approveDisclosure(id) {
+
+        const confirmed =
+            confirm(
+                "Are you sure you want to approve this disclosure?"
+            );
+
+
+        if (!confirmed) {
+
+            return;
+
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `/api/disclosures/${id}/approve`,
+                    {
+                        method: "PUT"
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (response.ok) {
+
+                showMessage(
+                    "Disclosure approved successfully.",
+                    "success"
+                );
+
+
+                details.style.display =
+                    "none";
+
+
+                await loadDisclosures();
+
+            } else {
+
+                showMessage(
+                    data.message ||
+                    "Approval failed.",
+                    "error"
+                );
+
+            }
+
+
+        } catch (error) {
+
+            showMessage(
+                "Unable to connect to the server.",
+                "error"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // REJECT
+    // =========================================================
+
+    async function rejectDisclosure(id) {
+
+        const reason =
+            prompt(
+                "Enter the reason for rejection:"
+            );
+
+
+        if (reason === null) {
+
+            return;
+
+        }
+
+
+        if (reason.trim() === "") {
+
+            alert(
+                "Rejection reason is required."
+            );
+
+            return;
+
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `/api/disclosures/${id}/reject`,
+                    {
+
+                        method: "PUT",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+                                reason:
+                                    reason.trim()
+                            })
+
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (response.ok) {
+
+                showMessage(
+                    "Disclosure rejected successfully.",
+                    "success"
+                );
+
+
+                details.style.display =
+                    "none";
+
+
+                await loadDisclosures();
+
+            } else {
+
+                showMessage(
+                    data.message ||
+                    "Rejection failed.",
+                    "error"
+                );
+
+            }
+
+
+        } catch (error) {
+
+            showMessage(
+                "Unable to connect to the server.",
+                "error"
+            );
+
+        }
+
+    }
+
+
+    // =========================================================
+    // INITIAL LOAD
+    // =========================================================
+
+    loadDisclosures();
+
+
+</script>
+
+
+</body>
+
+</html>

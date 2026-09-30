@@ -1,0 +1,60 @@
+---
+- name: Configure Patent Disclosure Workflow
+  hosts: localhost
+  connection: local
+  become: false
+
+  vars:
+    project_dir: "D:/Patent-Disclosure-Workflow"
+    docker_image: "patent-disclosure-workflow:1.0"
+    container_name: "patent-disclosure-container"
+    host_port: "8091"
+    container_port: "8090"
+
+  tasks:
+
+    - name: Display deployment configuration
+      debug:
+        msg:
+          - "Project directory: {{ project_dir }}"
+          - "Docker image: {{ docker_image }}"
+          - "Container: {{ container_name }}"
+          - "Port: {{ host_port }} -> {{ container_port }}"
+
+    - name: Check Docker service
+      ansible.builtin.command:
+        cmd: docker info
+      register: docker_info
+      changed_when: false
+
+    - name: Ensure Docker image exists
+      ansible.builtin.command:
+        cmd: docker image inspect {{ docker_image }}
+      register: image_check
+      changed_when: false
+
+    - name: Stop existing application container
+      ansible.builtin.command:
+        cmd: docker rm -f {{ container_name }}
+      register: remove_container
+      failed_when: false
+      changed_when: remove_container.rc == 0
+
+    - name: Start Patent Disclosure application container
+      ansible.builtin.command:
+        cmd: docker run -d --name {{ container_name }} -p {{ host_port }}:{{ container_port }} {{ docker_image }}
+      register: container_start
+
+    - name: Verify running container
+      ansible.builtin.command:
+        cmd: docker ps --filter "name={{ container_name }}" --filter "status=running"
+      register: running_container
+      changed_when: false
+
+    - name: Show container status
+      debug:
+        var: running_container.stdout
+
+    - name: Configuration management completed
+      debug:
+        msg: "Patent Disclosure Workflow container configured successfully."

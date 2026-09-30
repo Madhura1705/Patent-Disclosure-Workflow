@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Patent Disclosure Workflow</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #1f2937;
+        }
+
+        header {
+            background: #17365d;
+            color: white;
+            padding: 25px 50px;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+        }
+
+        header p {
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+        }
+
+        .card h2 {
+            color: #17365d;
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 7px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 130px;
+            resize: vertical;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .required {
+            color: #dc2626;
+        }
+
+        button {
+            background: #17365d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0f2948;
+        }
+
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .message {
+            display: none;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            display: block;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .error {
+            display: block;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .disclosure-result {
+            display: none;
+            background: #eff6ff;
+            border: 1px solid #93c5fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .disclosure-result strong {
+            color: #1d4ed8;
+            font-size: 18px;
+        }
+
+        .status {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 12px;
+            border-radius: 15px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            color: #777;
+            padding: 20px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <h1>Patent Disclosure Workflow</h1>
+
+    <p>
+        Selenium Testing for a Patent Disclosure Workflow
+    </p>
+
+</header>
+
+
+<div class="container">
+
+    <div class="card">
+
+        <h2>Submit Patent Disclosure</h2>
+
+        <div id="message"
+             class="message">
+        </div>
+
+        <form id="disclosureForm"
+              enctype="multipart/form-data">
+
+            <div class="form-group">
+
+                <label for="applicantName">
+                    Applicant Name
+                    <span class="required">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="applicantName"
+                    name="applicantName"
+                    placeholder="Enter applicant name"
+                    required>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="email">
+                    Email
+                    <span class="required">*</span>
+                </label>
+
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter email address"
+                    required>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="department">
+                    Department
+                    <span class="required">*</span>
+                </label>
+
+                <select
+                    id="department"
+                    name="department"
+                    required>
+
+                    <option value="">
+                        Select Department
+                    </option>
+
+                    <option value="Computer Engineering">
+                        Computer Engineering
+                    </option>
+
+                    <option value="Information Technology">
+                        Information Technology
+                    </option>
+
+                    <option value="Electronics">
+                        Electronics
+                    </option>
+
+                    <option value="Mechanical Engineering">
+                        Mechanical Engineering
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="patentTitle">
+                    Patent Title
+                    <span class="required">*</span>
+                </label>
+
+                <input
+                    type="text"
+                    id="patentTitle"
+                    name="patentTitle"
+                    placeholder="Enter patent title"
+                    required>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="patentDescription">
+                    Patent Description
+                    <span class="required">*</span>
+                </label>
+
+                <textarea
+                    id="patentDescription"
+                    name="patentDescription"
+                    placeholder="Describe the invention..."
+                    required></textarea>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="document">
+                    Supporting Document
+                    <span class="required">*</span>
+                </label>
+
+                <input
+                    type="file"
+                    id="document"
+                    name="document"
+                    accept=".pdf,.doc,.docx"
+                    required>
+
+                <small>
+                    Allowed formats: PDF, DOC, DOCX. Maximum size: 10 MB.
+                </small>
+
+            </div>
+
+
+            <button
+                type="submit"
+                id="submitDisclosure">
+
+                Submit Disclosure
+
+            </button>
+
+        </form>
+
+
+        <div id="disclosureResult"
+             class="disclosure-result">
+
+            <p>
+                Your patent disclosure has been submitted successfully.
+            </p>
+
+            <p>
+                Disclosure ID:
+                <strong id="disclosureId"></strong>
+            </p>
+
+            <span class="status"
+                  id="disclosureStatus">
+                SUBMITTED
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<footer>
+
+    Patent Disclosure Workflow |
+    DevOps & Selenium Project
+
+    <br>
+
+    Madhura Suroshe | 24102C2002
+
+</footer>
+
+
+<script>
+
+    const form =
+        document.getElementById("disclosureForm");
+
+    const message =
+        document.getElementById("message");
+
+    const submitButton =
+        document.getElementById("submitDisclosure");
+
+    const result =
+        document.getElementById("disclosureResult");
+
+    const disclosureId =
+        document.getElementById("disclosureId");
+
+    const disclosureStatus =
+        document.getElementById("disclosureStatus");
+
+
+    form.addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+        message.className = "message";
+        message.textContent = "";
+
+        result.style.display = "none";
+
+        submitButton.disabled = true;
+        submitButton.textContent = "Submitting...";
+
+
+        const formData =
+            new FormData(form);
+
+
+        try {
+
+            const response =
+                await fetch("/api/disclosures", {
+                    method: "POST",
+                    body: formData
+                });
+
+
+            const data =
+                await response.json();
+
+
+            if (response.ok) {
+
+                message.className =
+                    "message success";
+
+                message.textContent =
+                    data.message;
+
+
+                disclosureId.textContent =
+                    data.disclosureId;
+
+
+                disclosureStatus.textContent =
+                    data.status;
+
+
+                result.style.display =
+                    "block";
+
+
+                form.reset();
+
+            } else {
+
+                message.className =
+                    "message error";
+
+                message.textContent =
+                    data.message ||
+                    "Submission failed.";
+
+            }
+
+        } catch (error) {
+
+            message.className =
+                "message error";
+
+            message.textContent =
+                "Unable to connect to the server.";
+
+        } finally {
+
+            submitButton.disabled = false;
+
+            submitButton.textContent =
+                "Submit Disclosure";
+
+        }
+
+    });
+
+</script>
+
+</body>
+
+</html>
