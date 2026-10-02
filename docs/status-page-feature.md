@@ -28,3 +28,13 @@ The status tracking page is covered by the Selenium test:
 `testStatusTrackingPageLoads`
 
 The test verifies that the status tracking page loads successfully and that the expected page heading is present.
+
+## API Endpoint Example
+
+The status tracking feature uses the disclosure API base endpoint:
+
+`GET /api/disclosures/{disclosureId}`
+
+For example:
+
+`GET /api/disclosures/PD-20260929-45788404`
